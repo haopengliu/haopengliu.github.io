@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>初心如炬 - 排序游戏</title>
+    <title>初心如炬 - 逐句排序游戏</title>
     <style>
         * {
             margin: 0;
@@ -59,7 +59,7 @@
 
         .draggable.dragging {
             opacity: 0.5;
-            transform: scale(1.01);
+            transform: scale(1.02);
         }
 
         .check-btn {
@@ -94,8 +94,9 @@
     <div class="title">四、初心如炬：以青春之力托举强国梦</div>
     <div class="rule">
         游戏规则：<br>
-        1. 鼠标/长按拖动段落排序<br>
-        2. 排好后点击【检查答案】
+        1. 每一句都是独立卡片<br>
+        2. 长按/鼠标拖动排序<br>
+        3. 排好后点击【检查答案】
     </div>
 
     <div class="container" id="container"></div>
@@ -103,22 +104,35 @@
     <div class="result" id="result"></div>
 
     <script>
-        // 一句一段 · 原文一字不差
+        // 逐句拆分 · 一字不差 · 每一句一个块
         const data = [
             { id: 1, text: "四、初心如炬：以青春之力托举强国梦" },
-            { id: 2, text: "秭归抽蓄团队，平均年龄只有34岁，一大批和我一样的00后、90后，在平凡岗位上书写不凡。有的同事常年驻守工地，舍小家顾大家；有的同事顶烈日、冒风雨，日夜坚守施工一线。" },
-            { id: 3, text: "我们半年干了一年半的活，一年干了三年的进度，刷新了抽蓄行业最快的项目筹备、工程筹建、工程推进记录，把无数“不可能”变成了“一定行”。我们用行动证明：重大工程建设没有旁观者，每个岗位都是主角；每一份坚守，都在为实现使命担当添砖加瓦。" },
-            { id: 4, text: "等到2030年首台机组投产发电，我们将成功攻克“高水头大容量冲击式机组”这一世界级难题，为攀登人类水电史上的“珠穆朗玛峰”提供最硬核的支撑；秭归抽蓄将并入湖北电网，承担起调峰、填谷、储能等功能，为华中地区提供源源不断的清洁能源，真正走进千家万户的生活。" },
-            { id: 5, text: "百年五四，薪火相传，变的是时空，不变的是初心。我们00后生在红旗下，长在春风里，生逢盛世，更重任在肩。请党放心，强国有我！" }
+            { id: 2, text: "秭归抽蓄团队，平均年龄只有34岁，一大批和我一样的00后、90后，在平凡岗位上书写不凡。" },
+            { id: 3, text: "有的同事常年驻守工地，舍小家顾大家；" },
+            { id: 4, text: "有的同事顶烈日、冒风雨，日夜坚守施工一线。" },
+            { id: 5, text: "我们半年干了一年半的活，一年干了三年的进度，" },
+            { id: 6, text: "刷新了抽蓄行业最快的项目筹备、工程筹建、工程推进记录，" },
+            { id: 7, text: "把无数“不可能”变成了“一定行”。" },
+            { id: 8, text: "我们用行动证明：重大工程建设没有旁观者，每个岗位都是主角；" },
+            { id: 9, text: "每一份坚守，都在为实现使命担当添砖加瓦。" },
+            { id: 10, text: "等到2030年首台机组投产发电，" },
+            { id: 11, text: "我们将成功攻克“高水头大容量冲击式机组”这一世界级难题，" },
+            { id: 12, text: "为攀登人类水电史上的“珠穆朗玛峰”提供最硬核的支撑；" },
+            { id: 13, text: "秭归抽蓄将并入湖北电网，承担起调峰、填谷、储能等功能，" },
+            { id: 14, text: "为华中地区提供源源不断的清洁能源，真正走进千家万户的生活。" },
+            { id: 15, text: "百年五四，薪火相传，变的是时空，不变的是初心。" },
+            { id: 16, text: "我们00后生在红旗下，长在春风里，生逢盛世，更重任在肩。" },
+            { id: 17, text: "请党放心，强国有我！" }
         ];
 
-        // 正确顺序
-        const correctOrder = [1,2,3,4,5];
+        // 正确答案顺序
+        const correctOrder = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17];
+        
         let list = [...data].sort(() => Math.random() - 0.5);
         const container = document.getElementById("container");
         const result = document.getElementById("result");
 
-        // 渲染页面
+        // 渲染卡片
         function render() {
             container.innerHTML = "";
             list.forEach((item, index) => {
@@ -131,7 +145,7 @@
             initDrag();
         }
 
-        // 电脑 + 手机 双端拖拽
+        // 电脑 + 手机 双端完美拖拽
         function initDrag() {
             const items = document.querySelectorAll(".draggable");
             let dragIndex = null;
@@ -154,7 +168,7 @@
                 };
                 item.ondragend = () => item.classList.remove("dragging");
 
-                // 手机端
+                // 手机端（核心优化）
                 item.ontouchstart = (e) => {
                     e.preventDefault();
                     dragIndex = parseInt(item.dataset.index);
@@ -165,6 +179,7 @@
                     e.preventDefault();
                     const touch = e.changedTouches[0];
                     const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                    
                     if (target && target.classList.contains("draggable")) {
                         const dropIndex = parseInt(target.dataset.index);
                         if (dragIndex !== dropIndex) {
@@ -185,7 +200,7 @@
             
             if (isCorrect) {
                 result.className = "result success";
-                result.innerText = "✅ 排序完全正确！";
+                result.innerText = "✅ 恭喜你！排序完全正确！";
             } else {
                 result.className = "result fail";
                 result.innerText = "❌ 顺序不对，再调整一下吧～";
