@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>破茧成长 - 排序游戏</title>
     <style>
         * {
@@ -9,18 +10,21 @@
             padding: 0;
             box-sizing: border-box;
             font-family: "Microsoft YaHei", sans-serif;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         body {
             background-color: #f5f7fa;
-            padding: 30px 20px;
-            max-width: 900px;
+            padding: 20px 15px;
+            max-width: 800px;
             margin: 0 auto;
         }
 
         .title {
             text-align: center;
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
             margin-bottom: 10px;
             color: #2c3e50;
@@ -28,26 +32,30 @@
 
         .rule {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             color: #666;
-            line-height: 1.6;
+            font-size: 14px;
+            line-height: 1.5;
         }
 
         .container {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
 
         .draggable {
             background: white;
-            padding: 16px 20px;
+            padding: 14px 16px;
             border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
             cursor: grab;
             user-select: none;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             border-left: 5px solid #3498db;
+            font-size: 15px;
+            line-height: 1.5;
+            touch-action: none;
         }
 
         .draggable:active {
@@ -60,8 +68,8 @@
         }
 
         .check-btn {
-            margin: 30px auto;
-            padding: 12px 30px;
+            margin: 25px auto;
+            padding: 12px 28px;
             background: #2ecc71;
             color: white;
             border: none;
@@ -73,9 +81,9 @@
 
         .result {
             text-align: center;
-            font-size: 18px;
+            font-size: 17px;
             font-weight: bold;
-            margin-top: 20px;
+            margin-top: 15px;
         }
 
         .success {
@@ -91,7 +99,7 @@
     <div class="title">三、破茧成长：跳出“舒适圈”的00后</div>
     <div class="rule">
         游戏规则：<br>
-        1. 鼠标拖拽段落到正确位置<br>
+        1. 长按段落拖动排序<br>
         2. 排好后点击【检查答案】
     </div>
 
@@ -100,7 +108,7 @@
     <div class="result" id="result"></div>
 
     <script>
-        // 完全一字不差，共6段
+        // 原文一字不差 · 共7段
         const data = [
             { id: 1, text: "三、破茧成长：跳出“舒适圈”的00后" },
             { id: 2, text: "就这样，我的青春故事在秭归续写，作为社会学专业的学生，我被分到了党群工作岗。刚来时，我格外担心我的工作容易“浮于表面”，日常写写材料、搞搞活动，不直接碰工程、不直接出数据，那不就是“可有可无”吗？但这一年参与的具体事务，彻底扭转了我的看法。" },
@@ -111,14 +119,10 @@
             { id: 7, text: "就是这轻轻一拍，把我从“可有可无”的自我怀疑里，拍醒了。我不再觉得自己是旁观者，而是真正成为了重大工程不可或缺的一份子。我在服务大局中找准定位，在凝聚力量中实现成长，我的青春，终于在国家工程一线，找到了最扎实的价值。" }
         ];
 
-        // 正确顺序
         const correctOrder = [1,2,3,4,5,6,7];
-
-        // 随机打乱
         let list = [...data].sort(() => Math.random() - 0.5);
         const container = document.getElementById("container");
         const result = document.getElementById("result");
-        let dragIndex = -1;
 
         // 渲染
         function render() {
@@ -126,7 +130,6 @@
             list.forEach((item, index) => {
                 const div = document.createElement("div");
                 div.className = "draggable";
-                div.draggable = true;
                 div.dataset.index = index;
                 div.innerText = item.text;
                 container.appendChild(div);
@@ -134,34 +137,50 @@
             initDrag();
         }
 
-        // 拖拽功能
+        // 电脑 + 手机 双端拖拽
         function initDrag() {
             const items = document.querySelectorAll(".draggable");
-            
-            items.forEach(item => {
-                item.addEventListener("dragstart", (e) => {
-                    dragIndex = parseInt(e.target.dataset.index);
-                    e.target.classList.add("dragging");
-                });
+            let dragIndex = null;
 
-                item.addEventListener("dragover", (e) => {
+            items.forEach((item, i) => {
+                // 电脑端
+                item.ondragstart = (e) => {
+                    dragIndex = parseInt(item.dataset.index);
+                    item.classList.add("dragging");
+                };
+                item.ondragover = (e) => e.preventDefault();
+                item.ondrop = (e) => {
                     e.preventDefault();
-                });
-
-                item.addEventListener("drop", (e) => {
-                    e.preventDefault();
-                    const dropIndex = parseInt(e.target.dataset.index);
-                    
+                    const dropIndex = parseInt(item.dataset.index);
                     if (dragIndex !== dropIndex) {
                         const moved = list.splice(dragIndex, 1);
                         list.splice(dropIndex, 0, ...moved);
                         render();
                     }
-                });
+                };
+                item.ondragend = () => item.classList.remove("dragging");
 
-                item.addEventListener("dragend", (e) => {
-                    e.target.classList.remove("dragging");
-                });
+                // 手机端（核心修复）
+                item.ontouchstart = (e) => {
+                    e.preventDefault();
+                    dragIndex = parseInt(item.dataset.index);
+                    item.classList.add("dragging");
+                };
+                item.ontouchmove = (e) => e.preventDefault();
+                item.ontouchend = (e) => {
+                    e.preventDefault();
+                    const touch = e.changedTouches[0];
+                    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                    if (target && target.classList.contains("draggable")) {
+                        const dropIndex = parseInt(target.dataset.index);
+                        if (dragIndex !== dropIndex) {
+                            const moved = list.splice(dragIndex, 1);
+                            list.splice(dropIndex, 0, ...moved);
+                        }
+                    }
+                    item.classList.remove("dragging");
+                    render();
+                };
             });
         }
 
